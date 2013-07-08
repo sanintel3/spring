@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+	http://www.springframework.org/schema/security
+	http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+	
+     <!-- <http pattern="/js/**" security="none"/> -->
+	
+	<security:http auto-config="false" access-denied-page="/user/accessDenied" entry-point-ref="loginUrlAuthenticationEntryPoint">
+     	
+	<!-- <security:intercept-url pattern="/user/login" access="IS_AUTHENTICATED_ANONYMOUSLY" /> -->
+		<!-- latest entry in the list won't override it's previous entry configuration -->
+		<security:intercept-url pattern="/user/loginForm" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+	    <security:intercept-url pattern="/user/showForm*" access="ROLE_ADMIN" />
+	    <security:intercept-url pattern="/**" access="ROLE_USER,ROLE_ADMIN" requires-channel="http" />	    				
+		<security:intercept-url pattern="/spring_security_login" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<security:intercept-url pattern="/user/accessDenied" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		
+		
+		<security:custom-filter position="FORM_LOGIN_FILTER" ref="myLoginFilter" />
+		
+		<!-- <security:form-login
+			login-page="/user/login" always-use-default-target="false" 
+			default-target-url="/user/home" authentication-failure-url="/user/login"/> -->
+		
+		<security:logout
+			invalidate-session="true" delete-cookies="JSESSIONID"
+			logout-success-url="/user/loginForm"
+			logout-url="/j_spring_security_logout"/>
+				   		 
+				
+    </security:http>
+    
+
+	<bean id="loginUrlAuthenticationEntryPoint" class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint" >
+	    <property name="loginFormUrl"  value="/user/loginForm" /> <!-- configure login form action url -->
+	</bean>
+	
+	<bean id="myLoginFilter" class="com.cts.security.form.MyLoginFilter">
+    	<property name="authenticationManager" ref="am"/>
+    	<property name="authenticationSuccessHandler" ref="authSsuccessHandler"/>
+	</bean>
+	
+	<bean id="authSsuccessHandler" class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler">
+    	<property name="defaultTargetUrl" value="/user/home"/> <!-- configure home page action url -->
+	</bean>
+	
+	<security:authentication-manager alias="am">
+		<security:authentication-provider user-service-ref="inventoryUserService">
+			<!-- <security:jdbc-user-service id="userDetailsService" data-source-ref="dataSource"
+				users-by-username-query="select EMPLOYEE_ID,PW,'true' from TEST_USER where EMPLOYEE_ID=?" 
+				authorities-by-username-query="select EMPLOYEE_ID,ROLE from TEST_USER where EMPLOYEE_ID=?"
+				role-prefix="ROLE_"/> -->			
+		</security:authentication-provider>
+	</security:authentication-manager>
+	
+</beans>

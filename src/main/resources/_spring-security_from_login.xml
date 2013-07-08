@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+	http://www.springframework.org/schema/security
+	http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+	
+     <!-- <http pattern="/js/**" security="none"/> -->
+	
+	<security:http auto-config="true" access-denied-page="/user/accessDenied">
+     	
+	    <security:intercept-url pattern="/user/showForm*" access="ROLE_ADMIN" />
+	    <security:intercept-url pattern="/**" access="ROLE_USER,ROLE_ADMIN" requires-channel="http" />	    				
+		<security:intercept-url pattern="/spring_security_login" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<security:intercept-url pattern="/user/accessDenied" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<security:intercept-url pattern="/user/sessionError" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		
+		<security:form-login
+			login-page="/spring_security_login" always-use-default-target="false" 
+			default-target-url="/user/home" authentication-failure-url="/spring_security_login"/>
+		
+		<security:logout
+			invalidate-session="true" delete-cookies="JSESSIONID"
+			logout-success-url="/spring_security_login"
+			logout-url="/j_spring_security_logout"/>
+		
+		 <security:session-management session-authentication-error-url="/user/sessionError">
+        	<security:concurrency-control max-sessions="1" error-if-maximum-exceeded="false"  expired-url="/spring_security_login" />        	
+   		 </security:session-management>
+   		 
+				
+    </security:http>
+	
+	<security:authentication-manager>
+		<security:authentication-provider>
+			<security:jdbc-user-service id="userDetailsService" data-source-ref="dataSource"
+				users-by-username-query="select EMPLOYEE_ID,PW,'true' from TEST_USER where EMPLOYEE_ID=?" 
+				authorities-by-username-query="select EMPLOYEE_ID,ROLE from TEST_USER where EMPLOYEE_ID=?"
+				role-prefix="ROLE_"/>
+			<!-- <password-encoder hash="sha"/> -->
+		</security:authentication-provider>
+	</security:authentication-manager>
+	
+</beans>
